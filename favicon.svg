@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="6" y1="4" x2="58" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="55%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#1e40af" />
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#bfdbfe" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#0b1120" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Base Squircle -->
+  <rect x="4" y="6" width="56" height="54" rx="15" fill="url(#bgGrad)" />
+  <rect x="4.75" y="6.75" width="54.5" height="52.5" rx="14.25" stroke="#93c5fd" stroke-opacity="0.3" stroke-width="1.5" />
+
+  <!-- Argolas superiores de agenda/calendário -->
+  <rect x="19" y="2" width="5" height="10" rx="2.5" fill="url(#ringGrad)" filter="url(#shadow)" />
+  <rect x="40" y="2" width="5" height="10" rx="2.5" fill="url(#ringGrad)" filter="url(#shadow)" />
+
+  <!-- Faixa sutil de cabeçalho da agenda -->
+  <path d="M4 19h56" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1.5" />
+
+  <!-- Letra "A" geométrica moderna -->
+  <path
+    d="M32 21L19.5 49H26.2L28.7 43H35.3L37.8 49H44.5L32 21ZM30.4 37.8L32 33.4L33.6 37.8H30.4Z"
+    fill="#ffffff"
+    filter="url(#shadow)"
+  />
+
+  <!-- Badge verde de confirmação ("Pro" / horário ativo) -->
+  <circle cx="48" cy="46" r="9" fill="#0f172a" />
+  <circle cx="48" cy="46" r="7" fill="#34d399" />
+  <path
+    d="M44.8 46.2L47 48.3L51.4 43.9"
+    stroke="#064e3b"
+    stroke-width="2.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

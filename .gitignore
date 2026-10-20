@@ -1,0 +1,13 @@
+# Supabase CLI temp files
+supabase/.temp/
+
+# Variáveis de ambiente
+.env
+.env.*
+
+# Dependências
+node_modules/
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db

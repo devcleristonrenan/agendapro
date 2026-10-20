@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Teste Supabase</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+  <h2>Teste de conexão com Supabase</h2>
+  <pre id="result">Aguardando...</pre>
+
+  <script>
+    const SUPABASE_URL = "https://mubrnxxmfxygrrumgxww.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11YnJueHhtZnh5Z3JydW1neHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NDQxMTgsImV4cCI6MjEwODAyMDExOH0.MV23F2dH2_Qr94kDHrhSisXXabx25kax5BNMpWFESfM";
+
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function testar() {
+      const out = document.getElementById("result");
+      out.textContent = "Conectando...\n";
+
+      // Testa clients
+      const { data: c, error: e1 } = await db.from("clients").select("*").limit(1);
+      out.textContent += e1
+        ? "❌ clients: " + e1.message + "\n"
+        : "✅ clients OK — " + JSON.stringify(c) + "\n";
+
+      // Testa services
+      const { data: s, error: e2 } = await db.from("services").select("*").limit(1);
+      out.textContent += e2
+        ? "❌ services: " + e2.message + "\n"
+        : "✅ services OK — " + JSON.stringify(s) + "\n";
+
+      // Testa appointments
+      const { data: a, error: e3 } = await db.from("appointments").select("*").limit(1);
+      out.textContent += e3
+        ? "❌ appointments: " + e3.message + "\n"
+        : "✅ appointments OK — " + JSON.stringify(a) + "\n";
+    }
+
+    testar();
+  </script>
+</body>
+</html>

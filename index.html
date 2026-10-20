@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b1120" />
+    <title>AgendaPro | Sua agenda profissional</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="favicon.svg" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="supabase-config.js"></script>
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+
+    <!-- ══ TELA DE AUTENTICAÇÃO ══════════════════════════════ -->
+    <div id="auth-screen">
+      <div class="auth-card">
+        <div class="auth-brand">
+          <span class="brand-icon">A</span>
+          <span>Agenda<span class="brand-light">Pro</span></span>
+        </div>
+
+        <!-- Tabs -->
+        <div class="auth-tabs">
+          <button class="auth-tab active" data-tab="login">Entrar</button>
+          <button class="auth-tab" data-tab="signup">Criar conta</button>
+        </div>
+
+        <!-- Tab: Login -->
+        <form id="login-form" class="auth-form active">
+          <label>
+            E-mail
+            <input type="email" id="login-email" placeholder="seu@email.com" required autocomplete="email" />
+          </label>
+          <label>
+            Senha
+            <input type="password" id="login-password" placeholder="Sua senha" required autocomplete="current-password" />
+          </label>
+          <p class="auth-error" id="login-error" hidden></p>
+          <button type="submit" class="button button-primary auth-submit" id="login-btn">
+            Entrar
+          </button>
+          <button type="button" class="auth-link" id="forgot-password-btn">
+            Esqueci minha senha
+          </button>
+        </form>
+
+        <!-- Tab: Cadastro -->
+        <form id="signup-form" class="auth-form">
+          <!-- Campos ocultos do convite (preenchidos via URL ?invite=...) -->
+          <input type="hidden" id="invite-owner-id" />
+          <input type="hidden" id="invite-client-id" />
+
+          <!-- Aviso de convite (exibido só quando vem de link de convite) -->
+          <div id="invite-notice" class="auth-invite-notice" hidden>
+            🎉 Você foi convidado! Crie sua conta para acessar a agenda.
+          </div>
+
+          <label>
+            E-mail
+            <input type="email" id="signup-email" placeholder="seu@email.com" required autocomplete="email" />
+          </label>
+          <label>
+            Senha
+            <input type="password" id="signup-password" placeholder="Mínimo 6 caracteres" required autocomplete="new-password" minlength="6" />
+          </label>
+          <label>
+            Confirmar senha
+            <input type="password" id="signup-confirm" placeholder="Repita a senha" required autocomplete="new-password" minlength="6" />
+          </label>
+          <p class="auth-error" id="signup-error" hidden></p>
+          <p class="auth-success" id="signup-success" hidden></p>
+          <button type="submit" class="button button-primary auth-submit" id="signup-btn">
+            Criar conta
+          </button>
+        </form>
+
+        <!-- Mensagem de reset de senha -->
+        <p class="auth-success" id="reset-success" hidden></p>
+      </div>
+    </div>
+
+    <!-- ══ APP PRINCIPAL (oculto até login) ═════════════════ -->
+    <div id="main-app" style="display:none">
+      <div class="app">
+        <aside class="sidebar">
+          <a href="#" class="brand">
+            <span class="brand-icon">A</span>
+            <span>Agenda<span class="brand-light">Pro</span></span>
+          </a>
+
+          <p class="menu-label">MENU PRINCIPAL</p>
+
+          <nav class="navigation">
+            <button class="nav-link active" data-view="dashboard">
+              <span>▦</span> Visão geral
+            </button>
+            <button class="nav-link" data-view="agenda">
+              <span>◷</span> Agenda
+            </button>
+            <button class="nav-link" data-view="appointments">
+              <span>▣</span> Agendamentos
+            </button>
+            <button class="nav-link" data-view="clients">
+              <span>♙</span> Clientes
+            </button>
+            <button class="nav-link" data-view="services">
+              <span>✂</span> Serviços
+            </button>
+          </nav>
+
+          <div class="sidebar-footer">
+            <div class="user-card">
+              <div class="avatar-wrapper">
+                <div class="avatar" id="user-avatar">AP</div>
+                <span class="avatar-status" title="Online"></span>
+              </div>
+              <div class="user-info">
+                <strong id="user-display">Meu negócio</strong>
+                <small id="user-email-display">Minha agenda</small>
+              </div>
+              <button class="logout-btn" id="logout-btn" type="button" title="Sair da conta" aria-label="Sair da conta">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        <main class="main-content">
+          <header class="topbar">
+            <div>
+              <p class="eyebrow">SEU ESPAÇO DE TRABALHO</p>
+              <h1 id="page-title">Visão geral</h1>
+            </div>
+            <div class="topbar-actions">
+              <span class="status"><span></span> Sistema ativo</span>
+              <button class="logout-pill-btn mobile-logout-btn" id="mobile-logout-btn" type="button" title="Sair da conta">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span>Sair</span>
+              </button>
+            </div>
+          </header>
+
+          <!-- VISÃO GERAL -->
+          <section class="view active" id="dashboard">
+            <div class="welcome">
+              <div>
+                <p class="eyebrow">PAINEL DE CONTROLE</p>
+                <h2>Organize seu dia.</h2>
+                <p>Gerencie seus clientes e horários em um só lugar.</p>
+              </div>
+              <button class="button button-primary" id="quick-add">
+                + Novo agendamento
+              </button>
+            </div>
+
+            <div class="stats-grid">
+              <article class="stat-card">
+                <div class="stat-top">
+                  <span>Agendamentos</span>
+                  <span class="stat-icon blue">▣</span>
+                </div>
+                <strong id="total-appointments">0</strong>
+                <small>Total cadastrado</small>
+              </article>
+
+              <article class="stat-card">
+                <div class="stat-top">
+                  <span>Clientes</span>
+                  <span class="stat-icon green">♙</span>
+                </div>
+                <strong id="total-clients">0</strong>
+                <small>Clientes cadastrados</small>
+              </article>
+
+              <article class="stat-card">
+                <div class="stat-top">
+                  <span>Hoje</span>
+                  <span class="stat-icon purple">◷</span>
+                </div>
+                <strong id="today-appointments">0</strong>
+                <small>Horários marcados para hoje</small>
+              </article>
+              <article class="stat-card">
+                <div class="stat-top">
+                  <span>Faturamento Hoje</span>
+                  <span class="stat-icon green">$</span>
+                </div>
+                <strong id="revenue-today">R$ 0,00</strong>
+                <small>Concluídos hoje</small>
+              </article>
+
+              <article class="stat-card">
+                <div class="stat-top">
+                  <span>Faturamento do Mês</span>
+                  <span class="stat-icon purple">$</span>
+                </div>
+                <strong id="revenue-month">R$ 0,00</strong>
+                <small>Concluídos no mês</small>
+              </article>
+            </div>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h3>Próximos agendamentos</h3>
+                  <p>Confira seus compromissos futuros.</p>
+                </div>
+                <button class="button button-secondary" data-go="agenda">
+                  Ver agenda
+                </button>
+              </div>
+              <div id="dashboard-list" class="table-container"></div>
+            </section>
+          </section>
+
+          <!-- CLIENTES (Serviços) -->
+          <section class="view" id="services">
+            <div class="section-heading">
+              <div>
+                <h2>Serviços</h2>
+                <p>Cadastre os serviços, preços e duração dos atendimentos.</p>
+              </div>
+            </div>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h3 id="service-form-title">Adicionar serviço</h3>
+                  <p>Informe o nome, o preço e a duração.</p>
+                </div>
+              </div>
+
+              <form id="service-form" class="form-grid">
+                <input type="hidden" id="service-id" />
+
+                <label>
+                  Nome do serviço *
+                  <input
+                    type="text"
+                    id="service-name"
+                    placeholder="Ex.: Corte masculino"
+                    required
+                  />
+                </label>
+
+                <label>
+                  Preço (R$) *
+                  <input
+                    type="number"
+                    id="service-price"
+                    min="0"
+                    step="0.01"
+                    placeholder="35.00"
+                    required
+                  />
+                </label>
+
+                <label>
+                  Duração *
+                  <select id="service-duration" required>
+                    <option value="">Selecione a duração</option>
+                    <option value="15">15 minutos</option>
+                    <option value="20">20 minutos</option>
+                    <option value="30">30 minutos</option>
+                    <option value="45">45 minutos</option>
+                    <option value="60">60 minutos</option>
+                    <option value="90">90 minutos</option>
+                    <option value="120">120 minutos</option>
+                  </select>
+                </label>
+
+                <div class="form-actions full-width">
+                  <button
+                    type="button"
+                    class="btn-secondary"
+                    id="service-cancel-edit"
+                    hidden
+                  >
+                    Cancelar edição
+                  </button>
+                  <button type="submit" class="btn-primary" id="service-submit">
+                    Salvar serviço
+                  </button>
+                </div>
+              </form>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h3>Serviços cadastrados</h3>
+                  <p>Gerencie os serviços oferecidos.</p>
+                </div>
+                <input
+                  type="search"
+                  id="service-search"
+                  class="search-input"
+                  placeholder="Buscar serviço..."
+                />
+              </div>
+
+              <div id="services-list" class="table-container"></div>
+            </section>
+          </section>
+
+
+          <!-- CLIENTES -->
+          <section class="view" id="clients">
+            <div class="section-heading">
+              <div>
+                <h2>Clientes</h2>
+                <p>Gerencie seus clientes e histórico de atendimentos.</p>
+              </div>
+            </div>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h3 id="client-form-title">Adicionar cliente</h3>
+                  <p>Os campos com * são obrigatórios.</p>
+                </div>
+              </div>
+
+              <form id="client-form" class="form-grid">
+                <input type="hidden" id="client-id" />
+
+                <label>
+                  Nome *
+                  <input
+                    type="text"
+                    id="client-name"
+                    placeholder="Ex.: João da Silva"
+                    required
+                  />
+                </label>
+
+                <label>
+                  Telefone *
+                  <input
+                    type="tel"
+                    id="client-phone"
+                    placeholder="Ex.: (11) 99999-9999"
+                    required
+                  />
+                </label>
+
+                <label class="full-width">
+                  E-mail
+                  <input
+                    type="email"
+                    id="client-email"
+                    placeholder="Ex.: cliente@email.com (opcional, para convite por e-mail)"
+                    autocomplete="email"
+                  />
+                </label>
+
+                <label class="full-width">
+                  Observações
+                  <textarea
+                    id="client-notes"
+                    rows="2"
+                    placeholder="Preferências, alergias, etc. (opcional)"
+                  ></textarea>
+                </label>
+
+                <div class="form-actions full-width">
+                  <button
+                    type="button"
+                    class="btn-secondary"
+                    id="cancel-client-edit"
+                    hidden
+                  >
+                    Cancelar edição
+                  </button>
+                  <button type="submit" class="button button-primary" id="save-client">
+                    Salvar cliente
+                  </button>
+                </div>
+              </form>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h3>Clientes cadastrados</h3>
+                  <p>Consulte e gerencie seus clientes.</p>
+                </div>
+                <input
+                  type="search"
+                  id="client-search"
+                  class="search-input"
+                  placeholder="Buscar por nome, telefone ou e-mail..."
+                />
+              </div>
+              <div id="clients-list" class="table-container"></div>
+            </section>
+          </section>
+          <!-- AGENDA -->
+          <section class="view" id="agenda">
+            <div class="section-heading">
+              <div>
+                <h2>Agenda</h2>
+                <p>Visualize seus compromissos por dia ou semana.</p>
+              </div>
+              <button type="button" class="button button-primary" data-go="appointments">
+                + Novo agendamento
+              </button>
+            </div>
+
+            <section class="panel calendar-panel">
+              <div class="panel-heading">
+                <div>
+                  <h3>Minha agenda</h3>
+                  <p>Acompanhe seus horários disponíveis e ocupados.</p>
+                </div>
+
+                <div class="calendar-modes">
+                  <button
+                    type="button"
+                    class="button button-secondary active"
+                    id="day-mode"
+                  >
+                    Dia
+                  </button>
+                  <button
+                    type="button"
+                    class="button button-secondary"
+                    id="week-mode"
+                  >
+                    Semana
+                  </button>
+                </div>
+              </div>
+
+              <div class="calendar-toolbar">
+                <button
+                  type="button"
+                  class="button button-secondary"
+                  id="calendar-prev"
+                  aria-label="Período anterior"
+                >
+                  ←
+                </button>
+
+                <h3 id="calendar-title">Minha agenda</h3>
+
+                <button
+                  type="button"
+                  class="button button-secondary"
+                  id="calendar-next"
+                  aria-label="Próximo período"
+                >
+                  →
+                </button>
+
+                <button
+                  type="button"
+                  class="button button-secondary"
+                  id="calendar-today"
+                >
+                  Hoje
+                </button>
+              </div>
+
+              <div id="calendar-grid" class="calendar-grid"></div>
+            </section>
+          </section>
+
+          <!-- AGENDAMENTOS -->
+          <section class="view" id="appointments">
+            <div class="section-heading">
+              <div>
+                <h2>Agendamentos</h2>
+                <p>Marque horários e acompanhe seus compromissos.</p>
+              </div>
+              <button type="button" class="button button-secondary" data-go="agenda">
+                Ver agenda
+              </button>
+            </div>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h3>Novo agendamento</h3>
+                  <p>Os campos com * são obrigatórios.</p>
+                </div>
+              </div>
+
+              <form id="appointment-form" class="form-grid">
+                <label class="full-width">
+                  Cliente *
+                  <select id="appointment-client" required>
+                    <option value="">Selecione um cliente</option>
+                  </select>
+                </label>
+
+                <label>
+                  Serviço *
+                  <select id="appointment-service" required>
+                    <option value="">Selecione um serviço</option>
+                  </select>
+                  <small
+                    id="selected-service-duration"
+                    class="service-duration-note"
+                  >
+                    Cadastre um serviço para começar.
+                  </small>
+                </label>
+
+                <label>
+                  Data *
+                  <input id="appointment-date" type="date" required />
+                </label>
+
+                <label>
+                  Horário *
+                  <input id="appointment-time" type="time" required />
+                </label>
+
+                <label>
+                  Valor (R$)
+                  <input
+                    id="appointment-price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0,00"
+                  />
+                </label>
+
+                <label class="full-width">
+                  Observações
+                  <textarea
+                    id="appointment-notes"
+                    rows="2"
+                    placeholder="Detalhes do atendimento (opcional)"
+                  ></textarea>
+                </label>
+
+                <div class="form-actions full-width">
+                  <button type="submit" class="button button-primary">
+                    + Salvar agendamento
+                  </button>
+                </div>
+              </form>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h3>Todos os horários</h3>
+                  <p>Consulte ou cancele os agendamentos.</p>
+                </div>
+                <input
+                  class="search-input"
+                  id="appointment-search"
+                  type="search"
+                  placeholder="Buscar cliente ou serviço..."
+                />
+              </div>
+              <div id="appointments-list" class="table-container"></div>
+            </section>
+          </section>
+
+          <footer class="footer">
+            AgendaPro · Organize seu trabalho com simplicidade.
+          </footer>
+        </main>
+      </div>
+
+      <!-- Bottom navigation para mobile -->
+      <nav class="mobile-bottom-nav">
+        <button class="nav-link active" data-view="dashboard">
+          <span>▦</span>
+          <small>Início</small>
+        </button>
+        <button class="nav-link" data-view="agenda">
+          <span>◷</span>
+          <small>Agenda</small>
+        </button>
+        <button class="nav-link" data-view="appointments">
+          <span>▣</span>
+          <small>Agendar</small>
+        </button>
+        <button class="nav-link" data-view="clients">
+          <span>♙</span>
+          <small>Clientes</small>
+        </button>
+        <button class="nav-link" data-view="services">
+          <span>✂</span>
+          <small>Serviços</small>
+        </button>
+      </nav>
+    </div><!-- /#main-app -->
+
+    <!-- ══ PORTAL DO CLIENTE (oculto até login como cliente) ══ -->
+    <div id="client-portal" style="display:none">
+      <div class="client-layout">
+        <header class="client-header">
+          <div class="auth-brand" style="margin-bottom:0;justify-content:flex-start">
+            <span class="brand-icon">A</span>
+            <span>Agenda<span class="brand-light">Pro</span></span>
+          </div>
+          <div class="client-header-right">
+            <span id="client-greeting" class="client-greeting"></span>
+            <button class="logout-pill-btn" id="client-logout-btn" type="button">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              <span>Sair</span>
+            </button>
+          </div>
+        </header>
+
+        <main class="client-main">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">MEU ESPAÇO</p>
+              <h2>Minha Agenda</h2>
+              <p>Agende e acompanhe seus horários.</p>
+            </div>
+          </div>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <h3>Agendar horário</h3>
+                <p>Escolha o serviço, data e horário disponível.</p>
+              </div>
+            </div>
+            <form id="client-appointment-form" class="form-grid">
+              <label>
+                Serviço *
+                <select id="client-service" required>
+                  <option value="">Selecione um serviço</option>
+                </select>
+                <small id="client-service-duration" class="service-duration-note">Selecione um serviço.</small>
+              </label>
+              <label>
+                Data *
+                <input type="date" id="client-date" required />
+              </label>
+              <label>
+                Horário *
+                <input type="time" id="client-time" required />
+              </label>
+              <label class="full-width">
+                Observações
+                <textarea id="client-notes" rows="2" placeholder="Detalhes do atendimento (opcional)"></textarea>
+              </label>
+              <div class="form-actions full-width">
+                <button type="submit" class="button button-primary">+ Agendar</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <h3>Todos os agendamentos</h3>
+                <p>Veja os horários marcados no estabelecimento.</p>
+              </div>
+            </div>
+            <div id="client-appointments-list" class="table-container"></div>
+          </section>
+        </main>
+      </div>
+    </div><!-- /#client-portal -->
+
+    <!-- ══ MODAL DE CONFIRMAÇÃO DE LOGOUT ═══════════════════ -->
+    <div id="logout-modal" class="logout-modal-backdrop" hidden>
+      <div class="logout-modal-card" role="dialog" aria-modal="true" aria-labelledby="logout-modal-title">
+        <div class="logout-modal-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </div>
+        <h3 id="logout-modal-title">Encerrar sessão?</h3>
+        <p id="logout-modal-desc">Você precisará fazer login novamente para acessar sua agenda.</p>
+        <div class="logout-modal-actions">
+          <button type="button" class="button button-secondary" id="cancel-logout-btn">Cancelar</button>
+          <button type="button" class="button logout-confirm-btn" id="confirm-logout-btn">Sair da conta</button>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>
